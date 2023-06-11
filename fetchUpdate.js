@@ -57,12 +57,15 @@ async function createBundle(outputPath, timestamp) {
 async function processCharts(chartDB, officialChartDB, outputPath) {
   console.log("[ChartDB Bundle Update] Processing chartDB data");
 
+  let updatedChartDB = [];
   for (const element of chartDB) {
     if (element.meta.genre != "WORLD'S END") {
       let title = element.meta.title;
       let referenceOfficialDBItem = officialChartDB.find((obj) => {
         return obj.title === title;
       });
+
+      if (!referenceOfficialDBItem) continue; // if no official ID found, skip this item.
 
       element.meta.officialID = referenceOfficialDBItem.id;
       element.meta.jacket = referenceOfficialDBItem.image;
@@ -80,6 +83,8 @@ async function processCharts(chartDB, officialChartDB, outputPath) {
           )
         )
       );
+
+      updatedChartDB.push(element); // add element to the updatedChartDB if it has a corresponding official ID.
     } else {
       let title = element.meta.title.slice(0, -3);
       let referenceOfficialDBItem = officialChartDB.find((obj) => {
@@ -104,9 +109,11 @@ async function processCharts(chartDB, officialChartDB, outputPath) {
           )
         )
       );
+
+      updatedChartDB.push(element); // add element to the updatedChartDB if it has a corresponding official ID.
     }
   }
-  await writeJsonFile(path.join(outputPath, "ChartDB.json"), chartDB);
+  await writeJsonFile(path.join(outputPath, "ChartDB.json"), updatedChartDB);
 }
 
 function deleteFolderRecursive(folderPath) {
